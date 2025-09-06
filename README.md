@@ -96,6 +96,9 @@ The Agentless framework follows a 3-stage localization process followed by repai
 ```bash
 python agentless/fl/localize.py --file_level \
                                 --output_folder results/file_level \
+                                --local_dataset /path/to/local_dataset.jsonl \
+                                --model your-model-name \
+                                --backend openai \
                                 --num_threads 10 \
                                 --skip_existing
 ```
@@ -105,6 +108,9 @@ python agentless/fl/localize.py --file_level \
 python agentless/fl/localize.py --file_level \
                                 --irrelevant \
                                 --output_folder results/file_level_irrelevant \
+                                --local_dataset /path/to/local_dataset.jsonl \
+                                --model your-model-name \
+                                --backend openai \
                                 --num_threads 10 \
                                 --skip_existing
 ```
@@ -116,6 +122,9 @@ python agentless/fl/retrieve.py --index_type simple \
                                 --filter_file results/file_level_irrelevant/loc_outputs.jsonl \
                                 --output_folder results/retrieval_embedding \
                                 --persist_dir embedding/swe-bench_simple \
+                                --local_dataset /path/to/local_dataset.jsonl \
+                                --model your-model-name \
+                                --backend openai \
                                 --num_threads 10
 ```
 
@@ -136,6 +145,9 @@ python agentless/fl/localize.py --related_level \
                                 --compress_assign \
                                 --compress \
                                 --start_file results/file_level_combined/combined_locs.jsonl \
+                                --local_dataset /path/to/local_dataset.jsonl \
+                                --model your-model-name \
+                                --backend openai \
                                 --num_threads 10 \
                                 --skip_existing
 ```
@@ -151,6 +163,9 @@ python agentless/fl/localize.py --fine_grain_line_level \
                                 --temperature 0.8 \
                                 --num_samples 4 \
                                 --start_file results/related_elements/loc_outputs.jsonl \
+                                --local_dataset /path/to/local_dataset.jsonl \
+                                --model your-model-name \
+                                --backend openai \
                                 --num_threads 10 \
                                 --skip_existing
 ```
@@ -171,6 +186,9 @@ Generate patches using the edit locations:
 ```bash
 python agentless/repair/repair.py --loc_file results/edit_location_individual/loc_merged_0-0_outputs.jsonl \
                                   --output_folder results/repair_sample_1 \
+                                  --local_dataset /path/to/local_dataset.jsonl \
+                                  --model your-model-name \
+                                  --backend openai \
                                   --loc_interval \
                                   --top_n=3 \
                                   --context_window=10 \
@@ -187,6 +205,9 @@ python agentless/repair/repair.py --loc_file results/edit_location_individual/lo
 for i in {1..4}; do
     python agentless/repair/repair.py --loc_file results/edit_location_individual/loc_merged_$((i-1))-$((i-1))_outputs.jsonl \
                                       --output_folder results/repair_sample_$i \
+                                      --local_dataset /path/to/local_dataset.jsonl \
+                                      --model your-model-name \
+                                      --backend openai \
                                       --loc_interval \
                                       --top_n=3 \
                                       --context_window=10 \
@@ -228,6 +249,9 @@ done
 ```bash
 python agentless/test/generate_reproduction_tests.py --max_samples 40 \
                                                      --output_folder results/reproduction_test_samples \
+                                                     --local_dataset /path/to/local_dataset.jsonl \
+                                                     --model your-model-name \
+                                                     --backend openai \
                                                      --num_threads 10
 ```
 
@@ -282,23 +306,23 @@ For testing with a single target:
 ```bash
 # Localization
 python agentless/fl/localize.py --output_folder results/localization \
+                                --local_dataset /path/to/local_dataset.jsonl \
                                 --model your-model-name \
                                 --backend openai \
-                                --local_dataset path/to/dataset.jsonl \
                                 --target_id your-target-id
 
 # Retrieval
 python agentless/fl/retrieve.py --output_folder results/retrieval \
+                                --local_dataset /path/to/local_dataset.jsonl \
                                 --model your-model-name \
-                                --backend openai \
-                                --local_dataset path/to/dataset.jsonl
+                                --backend openai
 
 # Repair
 python agentless/repair/repair.py --loc_file results/localization/loc_outputs.jsonl \
                                   --output_folder results/repair \
+                                  --local_dataset /path/to/local_dataset.jsonl \
                                   --model your-model-name \
                                   --backend openai \
-                                  --local_dataset path/to/dataset.jsonl \
                                   --target_id your-target-id
 ```
 
