@@ -77,35 +77,229 @@ pip install -r multi-swe-bench/requirements.txt
 # Activate Agentless environment
 conda activate agentless
 cd Agentless
+
+# Set up environment
+export PYTHONPATH=$PYTHONPATH:$(pwd)
+export OPENAI_API_KEY="your-api-key-here"
+
+# Create results directory
+mkdir -p results
 ```
 
-#### Localization
+#### Complete Agentless Pipeline
+
+The Agentless framework follows a 3-stage localization process followed by repair and validation:
+
+##### Stage 1: Localize to Suspicious Files
+
+**Step 1.1: LLM-based File Localization**
 ```bash
-python agentless/fl/localize.py \
-  --output_folder results/localization \
-  --model your-model-name \
-  --backend openai \
-  --local_dataset path/to/dataset.jsonl
+python agentless/fl/localize.py --file_level \
+                                --output_folder results/file_level \
+                                --num_threads 10 \
+                                --skip_existing
 ```
 
-#### Retrieval
+**Step 1.2: Identify Irrelevant Folders**
 ```bash
-python agentless/fl/retrieve.py \
-  --output_folder results/retrieval \
-  --model your-model-name \
-  --backend openai \
-  --local_dataset path/to/dataset.jsonl
+python agentless/fl/localize.py --file_level \
+                                --irrelevant \
+                                --output_folder results/file_level_irrelevant \
+                                --num_threads 10 \
+                                --skip_existing
 ```
 
-#### Repair
+**Step 1.3: Embedding-based Retrieval**
 ```bash
-python agentless/repair/repair.py \
-  --loc_file results/localization/loc_outputs.jsonl \
-  --output_folder results/repair \
-  --model your-model-name \
-  --backend openai \
-  --local_dataset path/to/dataset.jsonl \
-  --target_id your-target-id
+python agentless/fl/retrieve.py --index_type simple \
+                                --filter_type given_files \
+                                --filter_file results/file_level_irrelevant/loc_outputs.jsonl \
+                                --output_folder results/retrieval_embedding \
+                                --persist_dir embedding/swe-bench_simple \
+                                --num_threads 10
+```
+
+**Step 1.4: Combine LLM and Retrieval Results**
+```bash
+python agentless/fl/combine.py --retrieval_loc_file results/retrieval_embedding/retrieve_locs.jsonl \
+                               --model_loc_file results/file_level/loc_outputs.jsonl \
+                               --top_n 3 \
+                               --output_folder results/file_level_combined
+```
+
+##### Stage 2: Localize to Related Elements
+
+```bash
+python agentless/fl/localize.py --related_level \
+                                --output_folder results/related_elements \
+                                --top_n 3 \
+                                --compress_assign \
+                                --compress \
+                                --start_file results/file_level_combined/combined_locs.jsonl \
+                                --num_threads 10 \
+                                --skip_existing
+```
+
+##### Stage 3: Localize to Edit Locations
+
+**Step 3.1: Generate Edit Location Samples**
+```bash
+python agentless/fl/localize.py --fine_grain_line_level \
+                                --output_folder results/edit_location_samples \
+                                --top_n 3 \
+                                --compress \
+                                --temperature 0.8 \
+                                --num_samples 4 \
+                                --start_file results/related_elements/loc_outputs.jsonl \
+                                --num_threads 10 \
+                                --skip_existing
+```
+
+**Step 3.2: Separate Individual Edit Location Sets**
+```bash
+python agentless/fl/localize.py --merge \
+                                --output_folder results/edit_location_individual \
+                                --top_n 3 \
+                                --num_samples 4 \
+                                --start_file results/edit_location_samples/loc_outputs.jsonl
+```
+
+##### Stage 4: Repair
+
+Generate patches using the edit locations:
+
+```bash
+python agentless/repair/repair.py --loc_file results/edit_location_individual/loc_merged_0-0_outputs.jsonl \
+                                  --output_folder results/repair_sample_1 \
+                                  --loc_interval \
+                                  --top_n=3 \
+                                  --context_window=10 \
+                                  --max_samples 10 \
+                                  --cot \
+                                  --diff_format \
+                                  --gen_and_process \
+                                  --num_threads 2
+```
+
+**Repeat for all 4 edit location sets:**
+```bash
+# For samples 1-4
+for i in {1..4}; do
+    python agentless/repair/repair.py --loc_file results/edit_location_individual/loc_merged_$((i-1))-$((i-1))_outputs.jsonl \
+                                      --output_folder results/repair_sample_$i \
+                                      --loc_interval \
+                                      --top_n=3 \
+                                      --context_window=10 \
+                                      --max_samples 10 \
+                                      --cot \
+                                      --diff_format \
+                                      --gen_and_process \
+                                      --num_threads 2
+done
+```
+
+##### Stage 5: Patch Validation and Selection
+
+**Step 5.1: Generate Regression Tests**
+```bash
+python agentless/test/run_regression_tests.py --run_id generate_regression_tests \
+                                              --output_file results/passing_tests.jsonl
+```
+
+**Step 5.2: Select Regression Tests**
+```bash
+python agentless/test/select_regression_tests.py --passing_tests results/passing_tests.jsonl \
+                                                 --output_folder results/select_regression
+```
+
+**Step 5.3: Run Regression Tests on Patches**
+```bash
+folder=results/repair_sample_1
+for num in {0..9..1}; do
+    run_id_prefix=$(basename $folder)
+    python agentless/test/run_regression_tests.py --regression_tests results/select_regression/output.jsonl \
+                                                  --predictions_path="${folder}/output_${num}_processed.jsonl" \
+                                                  --run_id="${run_id_prefix}_regression_${num}" \
+                                                  --num_workers 10
+done
+```
+
+**Step 5.4: Generate Reproduction Tests**
+```bash
+python agentless/test/generate_reproduction_tests.py --max_samples 40 \
+                                                     --output_folder results/reproduction_test_samples \
+                                                     --num_threads 10
+```
+
+**Step 5.5: Execute Reproduction Tests**
+```bash
+for st in {0..36..4}; do
+    en=$((st + 3))
+    echo "Processing ${st} to ${en}"
+    for num in $(seq $st $en); do
+        echo "Processing ${num}"
+        python agentless/test/run_reproduction_tests.py --run_id="reproduction_test_generation_filter_sample_${num}" \
+                                                        --test_jsonl="results/reproduction_test_samples/output_${num}_processed_reproduction_test.jsonl" \
+                                                        --num_workers 6 \
+                                                        --testing
+    done &
+done
+```
+
+**Step 5.6: Select Final Reproduction Tests**
+```bash
+python agentless/test/generate_reproduction_tests.py --max_samples 40 \
+                                                     --output_folder results/reproduction_test_samples \
+                                                     --output_file reproduction_tests.jsonl \
+                                                     --select
+```
+
+**Step 5.7: Evaluate Patches on Reproduction Tests**
+```bash
+folder=results/repair_sample_1
+for num in {0..9..1}; do
+    run_id_prefix=$(basename $folder)
+    python agentless/test/run_reproduction_tests.py --test_jsonl results/reproduction_test_samples/reproduction_tests.jsonl \
+                                                    --predictions_path="${folder}/output_${num}_processed.jsonl" \
+                                                    --run_id="${run_id_prefix}_reproduction_${num}" \
+                                                    --num_workers 10
+done
+```
+
+**Step 5.8: Final Patch Selection**
+```bash
+python agentless/repair/rerank.py --patch_folder results/repair_sample_1/,results/repair_sample_2/,results/repair_sample_3/,results/repair_sample_4/ \
+                                  --num_samples 40 \
+                                  --deduplicate \
+                                  --regression \
+                                  --reproduction
+```
+
+#### Simplified Usage (Single Target)
+
+For testing with a single target:
+
+```bash
+# Localization
+python agentless/fl/localize.py --output_folder results/localization \
+                                --model your-model-name \
+                                --backend openai \
+                                --local_dataset path/to/dataset.jsonl \
+                                --target_id your-target-id
+
+# Retrieval
+python agentless/fl/retrieve.py --output_folder results/retrieval \
+                                --model your-model-name \
+                                --backend openai \
+                                --local_dataset path/to/dataset.jsonl
+
+# Repair
+python agentless/repair/repair.py --loc_file results/localization/loc_outputs.jsonl \
+                                  --output_folder results/repair \
+                                  --model your-model-name \
+                                  --backend openai \
+                                  --local_dataset path/to/dataset.jsonl \
+                                  --target_id your-target-id
 ```
 
 ### 2. MultiSWE-Bench Evaluation
@@ -185,6 +379,46 @@ export OPENAI_API_KEY="your-api-key"
 - ✅ **Standalone Converter**: Independent prediction format converter
 - ✅ **Comprehensive Documentation**: Clear usage instructions
 - ✅ **Example Configurations**: Ready-to-use configuration files
+
+## 💰 Cost Analysis
+
+To measure the cost of running Agentless, use the provided cost analysis utility:
+
+```bash
+# Calculate cost for any step's output
+python dev/util/cost.py --output_file results/step_name/output.jsonl
+
+# Include embedding costs
+python dev/util/cost.py --output_file results/step_name/output.jsonl --embedding_cost
+```
+
+This will output the dollar cost and token usage for each step.
+
+## 📊 Output Structure
+
+### Key Output Files
+
+- **`loc_outputs.jsonl`**: Contains localization results with file paths and edit locations
+- **`output.jsonl`**: Contains generated patches and repair trajectories
+- **`all_preds.jsonl`**: Final selected patches ready for evaluation
+- **`*_test_results.jsonl`**: Test execution results for validation
+
+### Results Directory Structure
+```
+results/
+├── file_level/                    # Stage 1.1: LLM file localization
+├── file_level_irrelevant/         # Stage 1.2: Irrelevant folder identification
+├── retrieval_embedding/           # Stage 1.3: Embedding-based retrieval
+├── file_level_combined/           # Stage 1.4: Combined file locations
+├── related_elements/              # Stage 2: Related element localization
+├── edit_location_samples/         # Stage 3.1: Edit location samples
+├── edit_location_individual/      # Stage 3.2: Individual edit location sets
+├── repair_sample_1-4/            # Stage 4: Repair results (4 samples)
+├── passing_tests.jsonl           # Stage 5.1: Generated regression tests
+├── select_regression/            # Stage 5.2: Selected regression tests
+├── reproduction_test_samples/     # Stage 5.4-5.6: Reproduction test generation
+└── all_preds.jsonl               # Final output: Selected patches
+```
 
 ## 📚 Documentation
 
