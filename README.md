@@ -43,18 +43,27 @@ Agentless universe/
 - Git
 - Conda (recommended)
 
-### Setup
-```bash
-# Clone the repository
-git clone <repository-url>
-cd Agentless-universe
+### Environment Setup
 
-# Create conda environment
+This project uses two separate environments for different purposes:
+
+#### 1. Agentless Environment (for bug repair)
+```bash
+# Create conda environment for Agentless
 conda create -n agentless python=3.10
 conda activate agentless
 
-# Install dependencies
+# Install Agentless dependencies
 pip install -r Agentless/requirements.txt
+```
+
+#### 2. MultiSWE-Bench Environment (for evaluation)
+```bash
+# Create conda environment for MultiSWE-Bench
+conda create -n multiswebench python=3.10
+conda activate multiswebench
+
+# Install MultiSWE-Bench dependencies
 pip install -r multi-swe-bench/requirements.txt
 ```
 
@@ -62,9 +71,16 @@ pip install -r multi-swe-bench/requirements.txt
 
 ### 1. Agentless Bug Repair
 
+**Environment**: Use the `agentless` environment
+
+```bash
+# Activate Agentless environment
+conda activate agentless
+cd Agentless
+```
+
 #### Localization
 ```bash
-cd Agentless
 python agentless/fl/localize.py \
   --output_folder results/localization \
   --model your-model-name \
@@ -94,8 +110,16 @@ python agentless/repair/repair.py \
 
 ### 2. MultiSWE-Bench Evaluation
 
+**Environment**: Use the `multiswebench` environment
+
+```bash
+# Activate MultiSWE-Bench environment
+conda activate multiswebench
+```
+
 #### Convert Predictions
 ```bash
+# This can be run in either environment
 python convert_preds.py input_predictions.jsonl output_patches.jsonl
 ```
 
@@ -107,6 +131,22 @@ python -m multi_swe_bench.harness.run_evaluation \
 ```
 
 ## 🔧 Configuration
+
+### Environment Management
+
+This project uses two separate conda environments to avoid dependency conflicts:
+
+- **`agentless`**: For running Agentless bug repair tasks
+- **`multiswebench`**: For running MultiSWE-Bench evaluation tasks
+
+#### Switching Between Environments
+```bash
+# For Agentless tasks
+conda activate agentless
+
+# For MultiSWE-Bench evaluation
+conda activate multiswebench
+```
 
 ### Model Configuration
 All scripts now support flexible model configuration:
