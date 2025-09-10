@@ -115,6 +115,16 @@ def retrieve(args):
         found_files = []
 
     swe_bench_data = load_dataset_data(args)
+    
+    # Convert to list if it's a HuggingFace dataset
+    if hasattr(swe_bench_data, 'to_list'):
+        swe_bench_data = swe_bench_data.to_list()
+    
+    # Limit the number of instances if max_instances is specified
+    if args.max_instances is not None:
+        swe_bench_data = swe_bench_data[:args.max_instances]
+        print(f"Processing only the first {args.max_instances} instances")
+    
     prev_o = load_jsonl(args.output_file) if os.path.exists(args.output_file) else []
 
     if args.num_threads == 1:
@@ -160,7 +170,7 @@ def main():
     )
     parser.add_argument("--filter_top_n", type=int, default=None)
     parser.add_argument("--filter_file", type=str, default="")
-    parser.add_argument("--chunk_size", type=int, default=512)
+    parser.add_argument("--chunk_size", type=int, default=1024)
     parser.add_argument("--chunk_overlap", type=int, default=0)
     parser.add_argument("--persist_dir", type=str)
     parser.add_argument("--target_id", type=str)
@@ -182,6 +192,12 @@ def main():
         type=str,
         default=None,
         help="Path to local dataset file (JSONL format). If provided, will use local dataset instead of HuggingFace dataset.",
+    )
+    parser.add_argument(
+        "--max_instances",
+        type=int,
+        default=None,
+        help="Maximum number of instances to process (for testing purposes). If not specified, processes all instances.",
     )
 
     args = parser.parse_args()

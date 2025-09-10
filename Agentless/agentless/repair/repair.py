@@ -553,6 +553,12 @@ def repair(args):
         json.dump(vars(args), f, indent=4)
 
     swe_bench_data = load_dataset_data(args)
+    
+    # Limit the number of instances if max_instances is specified
+    if args.max_instances is not None:
+        swe_bench_data = swe_bench_data[:args.max_instances]
+        print(f"Processing only the first {args.max_instances} instances")
+    
     locs = load_jsonl(args.loc_file)
     prev_o = load_jsonl(args.output_file) if os.path.exists(args.output_file) else []
 
@@ -802,6 +808,12 @@ def main():
         type=str,
         default=None,
         help="Path to local dataset file (JSONL format). If provided, will use local dataset instead of HuggingFace dataset.",
+    )
+    parser.add_argument(
+        "--max_instances",
+        type=int,
+        default=None,
+        help="Maximum number of instances to process (for testing purposes). If not specified, processes all instances.",
     )
 
     args = parser.parse_args()

@@ -414,6 +414,12 @@ def localize_instance(
 
 def localize_irrelevant(args):
     swe_bench_data = load_dataset_data(args)
+    
+    # Limit the number of instances if max_instances is specified
+    if args.max_instances is not None:
+        swe_bench_data = swe_bench_data[:args.max_instances]
+        print(f"Processing only the first {args.max_instances} instances")
+    
     existing_instance_ids = (
         load_existing_instance_ids(args.output_file) if args.skip_existing else set()
     )
@@ -448,6 +454,12 @@ def localize_irrelevant(args):
 
 def localize(args):
     swe_bench_data = load_dataset_data(args)
+    
+    # Limit the number of instances if max_instances is specified
+    if args.max_instances is not None:
+        swe_bench_data = swe_bench_data[:args.max_instances]
+        print(f"Processing only the first {args.max_instances} instances")
+    
     start_file_locs = load_jsonl(args.start_file) if args.start_file else None
     existing_instance_ids = (
         load_existing_instance_ids(args.output_file) if args.skip_existing else set()
@@ -605,6 +617,12 @@ def main():
         type=str,
         default=None,
         help="Path to local dataset file (JSONL format). If provided, will use local dataset instead of HuggingFace dataset.",
+    )
+    parser.add_argument(
+        "--max_instances",
+        type=int,
+        default=None,
+        help="Maximum number of instances to process (for testing purposes). If not specified, processes all instances.",
     )
 
     args = parser.parse_args()
