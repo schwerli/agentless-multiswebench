@@ -1,0 +1,27 @@
+{
+    "mode": "evaluation",
+    "workdir": "./data/workdir",
+    "patch_files": [
+        "./data/patches/converted_preds.jsonl"
+    ],
+    "dataset_files": [
+        "./data/dataset/multiswebench_dataset.jsonl"
+    ],
+    "force_build": false,
+    "output_dir": "./data/results",
+    "specifics": [],
+    "skips": [],
+    "repo_dir": "./data/repos",
+    "need_clone": true,
+    "global_env": [],
+    "clear_env": true,
+    "stop_on_error": true,
+    "max_workers": 8,
+    "max_workers_build_image": 8,
+    "max_workers_run_instance": 8,
+    "fix_patch_run_cmd": "bash -c \"apt update && apt install -y patch && sed -i 's@git apply /home/test.patch /home/fix.patch@patch --batch --fuzz=5 -p1 -i /home/test.patch;patch --batch --fuzz=5 -p1 -i /home/fix.patch@g' /home/fix-run.sh && bash /home/fix-run.sh\"",
+    "log_dir": "./data/logs",
+    "log_level": "DEBUG",
+    "log_to_console": true,
+    "human_mode": true
+}
