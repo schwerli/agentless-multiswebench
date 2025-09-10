@@ -120,9 +120,6 @@ dmypy.json
 
 # Agentless specific
 playground/
-results/
-*.jsonl
-*.log
 temp/
 tmp/
 

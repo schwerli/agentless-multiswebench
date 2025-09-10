@@ -1,0 +1,170 @@
+2024-08-30 10:55:09,314 - INFO - Processing bug psf__requests-863
+2024-08-30 10:55:09,322 - INFO - ================ localize psf__requests-863 ================
+2024-08-30 10:55:09,343 - INFO - prompting with message:
+Please look through the following GitHub problem description and Repository structure and provide a list of files that one would need to edit to fix the problem.
+
+### GitHub Problem Description ###
+Allow lists in the dict values of the hooks argument
+Currently the Request class has a .register_hook() method but it parses the dictionary it expects from it's hooks argument weirdly: the argument can only specify one hook function per hook.  If you pass in a list of hook functions per hook the code in Request.**init**() will wrap the list in a list which then fails when the hooks are consumed (since a list is not callable).  This is especially annoying since you can not use multiple hooks from a session.  The only way to get multiple hooks now is to create the request object without sending it, then call .register_hook() multiple times and then finally call .send().
+
+This would all be much easier if Request.**init**() parsed the hooks parameter in a way that it accepts lists as it's values.
+
+
+
+###
+
+### Repository Structure ###
+requests/
+    setup.py
+    hooks.py
+    status_codes.py
+    safe_mode.py
+    __init__.py
+    exceptions.py
+    utils.py
+    structures.py
+    _oauth.py
+    certs.py
+    api.py
+    defaults.py
+    async.py
+    sessions.py
+    compat.py
+    cookies.py
+    auth.py
+    models.py
+    packages/
+        __init__.py
+        chardet/
+            constants.py
+            euckrprober.py
+            sjisprober.py
+            big5freq.py
+            langhebrewmodel.py
+            __init__.py
+            mbcssm.py
+            charsetgroupprober.py
+            langgreekmodel.py
+            gb2312prober.py
+            euckrfreq.py
+            euctwprober.py
+            sbcsgroupprober.py
+            mbcharsetprober.py
+            eucjpprober.py
+            universaldetector.py
+            euctwfreq.py
+            escsm.py
+            sbcharsetprober.py
+            latin1prober.py
+            langcyrillicmodel.py
+            hebrewprober.py
+            jpcntx.py
+            langthaimodel.py
+            codingstatemachine.py
+            langhungarianmodel.py
+            escprober.py
+            charsetprober.py
+            gb2312freq.py
+            utf8prober.py
+            mbcsgroupprober.py
+            big5prober.py
+            langbulgarianmodel.py
+            jisfreq.py
+            chardistribution.py
+        urllib3/
+            response.py
+            poolmanager.py
+            __init__.py
+            exceptions.py
+            util.py
+            connectionpool.py
+            _collections.py
+            request.py
+            filepost.py
+            packages/
+                __init__.py
+                ordered_dict.py
+                six.py
+                ssl_match_hostname/
+                    __init__.py
+            contrib/
+                __init__.py
+                ntlmpool.py
+        oauthlib/
+            __init__.py
+            common.py
+            oauth1/
+                __init__.py
+                rfc5849/
+                    __init__.py
+                    utils.py
+                    parameters.py
+                    signature.py
+            oauth2/
+                __init__.py
+                draft25/
+                    __init__.py
+                    utils.py
+                    tokens.py
+                    parameters.py
+        chardet2/
+            constants.py
+            euckrprober.py
+            sjisprober.py
+            big5freq.py
+            langhebrewmodel.py
+            __init__.py
+            mbcssm.py
+            charsetgroupprober.py
+            langgreekmodel.py
+            gb2312prober.py
+            euckrfreq.py
+            euctwprober.py
+            sbcsgroupprober.py
+            mbcharsetprober.py
+            eucjpprober.py
+            universaldetector.py
+            euctwfreq.py
+            escsm.py
+            sbcharsetprober.py
+            latin1prober.py
+            langcyrillicmodel.py
+            hebrewprober.py
+            jpcntx.py
+            langthaimodel.py
+            codingstatemachine.py
+            langhungarianmodel.py
+            escprober.py
+            charsetprober.py
+            gb2312freq.py
+            utf8prober.py
+            mbcsgroupprober.py
+            big5prober.py
+            langbulgarianmodel.py
+            jisfreq.py
+            chardistribution.py
+docs/
+    conf.py
+    _themes/
+        flask_theme_support.py
+
+###
+
+Please only provide the full path and return at most 5 files.
+The returned files should be separated by new lines ordered by most to least important and wrapped with ```
+For example:
+```
+file1.py
+file2.py
+```
+2024-08-30 10:55:09,343 - INFO - ================================================================================
+2024-08-30 10:55:09,343 - INFO - Initializing a decoder model: gpt-4o-2024-05-13 ...
+2024-08-30 10:55:09,366 - INFO - Creating API request
+2024-08-30 10:55:10,763 - INFO - API response ChatCompletion(id='chatcmpl-A1yFqDBwGvKSJ6FQ0pZL6jFMip66o', choices=[Choice(finish_reason='stop', index=0, logprobs=None, message=ChatCompletionMessage(content='```\nrequests/models.py\nrequests/hooks.py\nrequests/sessions.py\nrequests/__init__.py\nrequests/utils.py\n```', role='assistant', function_call=None, tool_calls=None, refusal=None))], created=1725033310, model='gpt-4o-2024-05-13', object='chat.completion', service_tier=None, system_fingerprint='fp_157b3831f5', usage=CompletionUsage(completion_tokens=26, prompt_tokens=1060, total_tokens=1086))
+2024-08-30 10:55:10,764 - INFO - ```
+requests/models.py
+requests/hooks.py
+requests/sessions.py
+requests/__init__.py
+requests/utils.py
+```

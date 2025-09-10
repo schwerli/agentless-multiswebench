@@ -1,0 +1,137 @@
+2024-08-30 11:28:43,732 - INFO - Processing bug psf__requests-2674
+2024-08-30 11:28:43,741 - INFO - ================ localize psf__requests-2674 ================
+2024-08-30 11:28:43,757 - INFO - prompting with message:
+Please look through the following GitHub problem description and Repository structure and provide a list of folders that are irrelevant to fixing the problem.
+Note that irrelevant folders are those that do not need to be modified and are safe to ignored when trying to solve this problem.
+
+### GitHub Problem Description ###
+urllib3 exceptions passing through requests API
+I don't know if it's a design goal of requests to hide urllib3's exceptions and wrap them around requests.exceptions types.
+
+(If it's not IMHO it should be, but that's another discussion)
+
+If it is, I have at least two of them passing through that I have to catch in addition to requests' exceptions. They are requests.packages.urllib3.exceptions.DecodeError and requests.packages.urllib3.exceptions.TimeoutError (this one I get when a proxy timeouts)
+
+Thanks!
+
+
+
+###
+
+### Repository Structure ###
+requests/
+    setup.py
+    hooks.py
+    status_codes.py
+    __init__.py
+    exceptions.py
+    utils.py
+    structures.py
+    certs.py
+    api.py
+    sessions.py
+    adapters.py
+    compat.py
+    cookies.py
+    auth.py
+    models.py
+    packages/
+        __init__.py
+        chardet/
+            constants.py
+            euckrprober.py
+            sjisprober.py
+            big5freq.py
+            langhebrewmodel.py
+            __init__.py
+            mbcssm.py
+            chardetect.py
+            charsetgroupprober.py
+            cp949prober.py
+            langgreekmodel.py
+            gb2312prober.py
+            euckrfreq.py
+            euctwprober.py
+            sbcsgroupprober.py
+            mbcharsetprober.py
+            eucjpprober.py
+            universaldetector.py
+            euctwfreq.py
+            escsm.py
+            sbcharsetprober.py
+            latin1prober.py
+            langcyrillicmodel.py
+            hebrewprober.py
+            jpcntx.py
+            langthaimodel.py
+            codingstatemachine.py
+            langhungarianmodel.py
+            escprober.py
+            charsetprober.py
+            gb2312freq.py
+            compat.py
+            utf8prober.py
+            mbcsgroupprober.py
+            big5prober.py
+            langbulgarianmodel.py
+            jisfreq.py
+            chardistribution.py
+        urllib3/
+            response.py
+            poolmanager.py
+            __init__.py
+            exceptions.py
+            connectionpool.py
+            fields.py
+            _collections.py
+            connection.py
+            request.py
+            filepost.py
+            util/
+                response.py
+                url.py
+                ssl_.py
+                __init__.py
+                timeout.py
+                connection.py
+                request.py
+                retry.py
+            packages/
+                __init__.py
+                ordered_dict.py
+                six.py
+                ssl_match_hostname/
+                    __init__.py
+                    _implementation.py
+            contrib/
+                __init__.py
+                ntlmpool.py
+                pyopenssl.py
+docs/
+    conf.py
+    _themes/
+        flask_theme_support.py
+
+###
+
+Please only provide the full path.
+Remember that any subfolders will be considered as irrelevant if you provide the parent folder.
+Please ensure that the provided irrelevant folders do not include any important files needed to fix the problem
+The returned folders should be separated by new lines and wrapped with ```
+For example:
+```
+folder1/
+folder2/folder3/
+folder4/folder5/
+```
+2024-08-30 11:28:43,757 - INFO - ================================================================================
+2024-08-30 11:28:43,757 - INFO - Initializing a decoder model: gpt-4o-2024-05-13 ...
+2024-08-30 11:28:43,773 - INFO - Creating API request
+2024-08-30 11:28:44,591 - INFO - API response ChatCompletion(id='chatcmpl-A1ymJ6LJj58IFHI0gX1jwUQN1NWmL', choices=[Choice(finish_reason='stop', index=0, logprobs=None, message=ChatCompletionMessage(content='```\nrequests/packages/chardet/\nrequests/packages/urllib3/util/\nrequests/packages/urllib3/packages/\nrequests/packages/urllib3/contrib/\ndocs/\n```', role='assistant', function_call=None, tool_calls=None, refusal=None))], created=1725035323, model='gpt-4o-2024-05-13', object='chat.completion', service_tier=None, system_fingerprint='fp_fde2829a40', usage=CompletionUsage(completion_tokens=33, prompt_tokens=768, total_tokens=801))
+2024-08-30 11:28:44,592 - INFO - ```
+requests/packages/chardet/
+requests/packages/urllib3/util/
+requests/packages/urllib3/packages/
+requests/packages/urllib3/contrib/
+docs/
+```

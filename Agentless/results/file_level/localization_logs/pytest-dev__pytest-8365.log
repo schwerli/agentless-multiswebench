@@ -1,0 +1,171 @@
+2024-08-30 10:55:12,840 - INFO - Processing bug pytest-dev__pytest-8365
+2024-08-30 10:55:12,879 - INFO - ================ localize pytest-dev__pytest-8365 ================
+2024-08-30 10:55:12,903 - INFO - prompting with message:
+Please look through the following GitHub problem description and Repository structure and provide a list of files that one would need to edit to fix the problem.
+
+### GitHub Problem Description ###
+tmpdir creation fails when the username contains illegal characters for directory names
+`tmpdir`, `tmpdir_factory` and `tmp_path_factory` rely on `getpass.getuser()` for determining the `basetemp` directory. I found that the user name returned by `getpass.getuser()` may return characters that are not allowed for directory names. This may lead to errors while creating the temporary directory.
+
+The situation in which I reproduced this issue was while being logged in through an ssh connection into my Windows 10 x64 Enterprise version (1909) using an OpenSSH_for_Windows_7.7p1 server. In this configuration the command `python -c "import getpass; print(getpass.getuser())"` returns my domain username e.g. `contoso\john_doe` instead of `john_doe` as when logged in regularly using a local session.
+
+When trying to create a temp directory in pytest through e.g. `tmpdir_factory.mktemp('foobar')` this fails with the following error message:
+```
+self = WindowsPath('C:/Users/john_doe/AppData/Local/Temp/pytest-of-contoso/john_doe')
+mode = 511, parents = False, exist_ok = True
+
+    def mkdir(self, mode=0o777, parents=False, exist_ok=False):
+        """
+        Create a new directory at this given path.
+        """
+        if self._closed:
+            self._raise_closed()
+        try:
+>           self._accessor.mkdir(self, mode)
+E           FileNotFoundError: [WinError 3] The system cannot find the path specified: 'C:\\Users\\john_doe\\AppData\\Local\\Temp\\pytest-of-contoso\\john_doe'
+
+C:\Python38\lib\pathlib.py:1266: FileNotFoundError
+```
+
+I could also reproduce this without the complicated ssh/windows setup with pytest 6.2.2 using the following commands from a `cmd`:
+```bat
+echo def test_tmpdir(tmpdir):>test_tmp.py
+echo   pass>>test_tmp.py
+set LOGNAME=contoso\john_doe
+py.test test_tmp.py
+```
+
+Thanks for having a look at this!
+
+
+###
+
+### Repository Structure ###
+pytest/
+    setup.py
+doc/
+    en/
+        conftest.py
+        conf.py
+        example/
+            multipython.py
+            pythoncollection.py
+            conftest.py
+            xfail_demo.py
+            fixtures/
+            nonpython/
+                __init__.py
+                conftest.py
+            assertion/
+                failure_demo.py
+                global_testmodule_config/
+                    conftest.py
+bench/
+    xunit.py
+    empty.py
+    bench.py
+    manyparam.py
+    bench_argcomplete.py
+    unit_test.py
+    skip.py
+scripts/
+    release-on-comment.py
+    towncrier-draft-to-file.py
+    update-plugin-list.py
+    prepare-release-pr.py
+    publish-gh-release-notes.py
+    release.py
+extra/
+    get_issues.py
+src/
+    pytest/
+        __init__.py
+        __main__.py
+        collect.py
+    _pytest/
+        store.py
+        timing.py
+        skipping.py
+        outcomes.py
+        fixtures.py
+        capture.py
+        pytester.py
+        __init__.py
+        nodes.py
+        pastebin.py
+        logging.py
+        monkeypatch.py
+        pytester_assertions.py
+        unraisableexception.py
+        helpconfig.py
+        main.py
+        pathlib.py
+        setupplan.py
+        faulthandler.py
+        freeze_support.py
+        warnings.py
+        doctest.py
+        threadexception.py
+        hookspec.py
+        reports.py
+        python.py
+        nose.py
+        unittest.py
+        deprecated.py
+        python_api.py
+        junitxml.py
+        recwarn.py
+        stepwise.py
+        _argcomplete.py
+        warning_types.py
+        compat.py
+        setuponly.py
+        debugging.py
+        cacheprovider.py
+        tmpdir.py
+        runner.py
+        terminal.py
+        config/
+            __init__.py
+            argparsing.py
+            exceptions.py
+            findpaths.py
+        _io/
+            __init__.py
+            saferepr.py
+            terminalwriter.py
+            wcwidth.py
+        mark/
+            __init__.py
+            structures.py
+            expression.py
+        assertion/
+            truncate.py
+            __init__.py
+            util.py
+            rewrite.py
+        _code/
+            __init__.py
+            code.py
+            source.py
+
+###
+
+Please only provide the full path and return at most 5 files.
+The returned files should be separated by new lines ordered by most to least important and wrapped with ```
+For example:
+```
+file1.py
+file2.py
+```
+2024-08-30 10:55:12,903 - INFO - ================================================================================
+2024-08-30 10:55:12,903 - INFO - Initializing a decoder model: gpt-4o-2024-05-13 ...
+2024-08-30 10:55:12,926 - INFO - Creating API request
+2024-08-30 10:55:13,896 - INFO - API response ChatCompletion(id='chatcmpl-A1yFt70YNdBjEzFpLxPMs42QWYmwm', choices=[Choice(finish_reason='stop', index=0, logprobs=None, message=ChatCompletionMessage(content='```\nsrc/_pytest/tmpdir.py\nsrc/_pytest/pathlib.py\nsrc/_pytest/config/findpaths.py\nsrc/_pytest/config/argparsing.py\nsrc/_pytest/main.py\n```', role='assistant', function_call=None, tool_calls=None, refusal=None))], created=1725033313, model='gpt-4o-2024-05-13', object='chat.completion', service_tier=None, system_fingerprint='fp_157b3831f5', usage=CompletionUsage(completion_tokens=41, prompt_tokens=1066, total_tokens=1107))
+2024-08-30 10:55:13,905 - INFO - ```
+src/_pytest/tmpdir.py
+src/_pytest/pathlib.py
+src/_pytest/config/findpaths.py
+src/_pytest/config/argparsing.py
+src/_pytest/main.py
+```

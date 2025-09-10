@@ -1,0 +1,165 @@
+2024-08-30 11:28:43,624 - INFO - Processing bug psf__requests-2148
+2024-08-30 11:28:43,629 - INFO - ================ localize psf__requests-2148 ================
+2024-08-30 11:28:43,644 - INFO - prompting with message:
+Please look through the following GitHub problem description and Repository structure and provide a list of folders that are irrelevant to fixing the problem.
+Note that irrelevant folders are those that do not need to be modified and are safe to ignored when trying to solve this problem.
+
+### GitHub Problem Description ###
+socket.error exception not caught/wrapped in a requests exception (ConnectionError perhaps?)
+I just noticed a case where I had a socket reset on me, and was raised to me as a raw socket error as opposed to something like a requests.exceptions.ConnectionError:
+
+```
+  File "/home/rtdean/***/***/***/***/***/***.py", line 67, in dir_parse
+    root = ElementTree.fromstring(response.text)
+  File "/home/rtdean/.pyenv/versions/2.7.6/lib/python2.7/site-packages/requests-2.3.0-py2.7.egg/requests/models.py", line 721, in text
+    if not self.content:
+  File "/home/rtdean/.pyenv/versions/2.7.6/lib/python2.7/site-packages/requests-2.3.0-py2.7.egg/requests/models.py", line 694, in content
+    self._content = bytes().join(self.iter_content(CONTENT_CHUNK_SIZE)) or bytes()
+  File "/home/rtdean/.pyenv/versions/2.7.6/lib/python2.7/site-packages/requests-2.3.0-py2.7.egg/requests/models.py", line 627, in generate
+    for chunk in self.raw.stream(chunk_size, decode_content=True):
+  File "/home/rtdean/.pyenv/versions/2.7.6/lib/python2.7/site-packages/requests-2.3.0-py2.7.egg/requests/packages/urllib3/response.py", line 240, in stream
+    data = self.read(amt=amt, decode_content=decode_content)
+  File "/home/rtdean/.pyenv/versions/2.7.6/lib/python2.7/site-packages/requests-2.3.0-py2.7.egg/requests/packages/urllib3/response.py", line 187, in read
+    data = self._fp.read(amt)
+  File "/home/rtdean/.pyenv/versions/2.7.6/lib/python2.7/httplib.py", line 543, in read
+    return self._read_chunked(amt)
+  File "/home/rtdean/.pyenv/versions/2.7.6/lib/python2.7/httplib.py", line 612, in _read_chunked
+    value.append(self._safe_read(chunk_left))
+  File "/home/rtdean/.pyenv/versions/2.7.6/lib/python2.7/httplib.py", line 658, in _safe_read
+    chunk = self.fp.read(min(amt, MAXAMOUNT))
+  File "/home/rtdean/.pyenv/versions/2.7.6/lib/python2.7/socket.py", line 380, in read
+    data = self._sock.recv(left)
+  File "/home/rtdean/.pyenv/versions/2.7.6/lib/python2.7/site-packages/gevent-1.0.1-py2.7-linux-x86_64.egg/gevent/socket.py", line 385, in recv
+    return sock.recv(*args)
+socket.error: [Errno 104] Connection reset by peer
+```
+
+Not sure if this is by accident or design... in general, I guess I'd expect a requests exception when using requests, but I can start looking for socket errors and the like as well.
+
+
+
+###
+
+### Repository Structure ###
+requests/
+    setup.py
+    hooks.py
+    status_codes.py
+    __init__.py
+    exceptions.py
+    utils.py
+    structures.py
+    certs.py
+    api.py
+    sessions.py
+    adapters.py
+    compat.py
+    cookies.py
+    auth.py
+    models.py
+    packages/
+        __init__.py
+        chardet/
+            constants.py
+            euckrprober.py
+            sjisprober.py
+            big5freq.py
+            langhebrewmodel.py
+            __init__.py
+            mbcssm.py
+            chardetect.py
+            charsetgroupprober.py
+            cp949prober.py
+            langgreekmodel.py
+            gb2312prober.py
+            euckrfreq.py
+            euctwprober.py
+            sbcsgroupprober.py
+            mbcharsetprober.py
+            eucjpprober.py
+            universaldetector.py
+            euctwfreq.py
+            escsm.py
+            sbcharsetprober.py
+            latin1prober.py
+            langcyrillicmodel.py
+            hebrewprober.py
+            jpcntx.py
+            langthaimodel.py
+            codingstatemachine.py
+            langhungarianmodel.py
+            escprober.py
+            charsetprober.py
+            gb2312freq.py
+            compat.py
+            utf8prober.py
+            mbcsgroupprober.py
+            big5prober.py
+            langbulgarianmodel.py
+            jisfreq.py
+            chardistribution.py
+        urllib3/
+            response.py
+            poolmanager.py
+            __init__.py
+            exceptions.py
+            connectionpool.py
+            fields.py
+            _collections.py
+            connection.py
+            request.py
+            filepost.py
+            util/
+                response.py
+                url.py
+                ssl_.py
+                __init__.py
+                timeout.py
+                connection.py
+                request.py
+                retry.py
+            packages/
+                __init__.py
+                ordered_dict.py
+                six.py
+                ssl_match_hostname/
+                    __init__.py
+                    _implementation.py
+            contrib/
+                __init__.py
+                ntlmpool.py
+                pyopenssl.py
+docs/
+    conf.py
+    _themes/
+        flask_theme_support.py
+
+###
+
+Please only provide the full path.
+Remember that any subfolders will be considered as irrelevant if you provide the parent folder.
+Please ensure that the provided irrelevant folders do not include any important files needed to fix the problem
+The returned folders should be separated by new lines and wrapped with ```
+For example:
+```
+folder1/
+folder2/folder3/
+folder4/folder5/
+```
+2024-08-30 11:28:43,644 - INFO - ================================================================================
+2024-08-30 11:28:43,644 - INFO - Initializing a decoder model: gpt-4o-2024-05-13 ...
+2024-08-30 11:28:43,661 - INFO - Creating API request
+2024-08-30 11:28:45,627 - INFO - API response ChatCompletion(id='chatcmpl-A1ymJAnRw4BYjLOP7rGQLPsCaIvDC', choices=[Choice(finish_reason='stop', index=0, logprobs=None, message=ChatCompletionMessage(content='Based on the problem description, the issue is related to handling socket errors within the `requests` library, specifically in the `models.py` file and potentially in the `urllib3` package. Therefore, folders related to documentation, themes, and character detection are irrelevant to fixing this problem.\n\nHere are the irrelevant folders:\n\n```\ndocs/\ndocs/_themes/\nrequests/packages/chardet/\nrequests/packages/urllib3/packages/\nrequests/packages/urllib3/contrib/\n```\n\nThese folders do not contain files that are directly related to handling socket errors or exceptions in the `requests` library.', role='assistant', function_call=None, tool_calls=None, refusal=None))], created=1725035323, model='gpt-4o-2024-05-13', object='chat.completion', service_tier=None, system_fingerprint='fp_157b3831f5', usage=CompletionUsage(completion_tokens=118, prompt_tokens=1408, total_tokens=1526))
+2024-08-30 11:28:45,627 - INFO - Based on the problem description, the issue is related to handling socket errors within the `requests` library, specifically in the `models.py` file and potentially in the `urllib3` package. Therefore, folders related to documentation, themes, and character detection are irrelevant to fixing this problem.
+
+Here are the irrelevant folders:
+
+```
+docs/
+docs/_themes/
+requests/packages/chardet/
+requests/packages/urllib3/packages/
+requests/packages/urllib3/contrib/
+```
+
+These folders do not contain files that are directly related to handling socket errors or exceptions in the `requests` library.
